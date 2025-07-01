@@ -170,10 +170,10 @@ class MsgPackEncoder {
         _writer.writeByte(0xcd);
         _writer.writeUint16(v);
       case < size32:
-        _writer.writeByte(0xcc);
+        _writer.writeByte(0xce);
         _writer.writeUint32(v);
       default:
-        _writer.writeByte(0xcd);
+        _writer.writeByte(0xcf);
         _writer.writeUint64(v);
     }
   }
