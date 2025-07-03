@@ -389,6 +389,61 @@ void main() {
         );
       });
     });
+
+    group('uint', () {
+      void run(int i, String e) =>
+        _run(e, (me) => me.putUint(i));
+
+      test('fixint', () {
+        run(
+          69,
+          '''
+            |1 bytes
+            |    0000 45
+          ''',
+        );
+      });
+
+      test('8 bit', () {
+        run(
+          130,
+          '''
+            |2 bytes
+            |    0000 cc 82
+          ''',
+        );
+      });
+
+      test('16 bit', () {
+        run(
+          259,
+          '''
+            |3 bytes
+            |    0000 cd 01 03
+          ''',
+        );
+      });
+
+      test('32 bit', () {
+        run(
+          65538,
+          '''
+            |5 bytes
+            |    0000 ce 00 01 00 02
+          ''',
+        );
+      });
+
+      test('64 bit', () {
+        run(
+          4294967299,
+          '''
+            |9 bytes
+            |    0000 cf 00 00 00 01 00 00 00 03
+          ''',
+        );
+      });
+    });
   });
 }
 
