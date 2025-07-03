@@ -15,4 +15,5 @@
 //
 // https://api.flutter.dev/flutter/foundation/kIsWeb-constant.html
 
-const kIsWeb = bool.fromEnvironment('dart.library.js_util');
+// const kIsWeb = bool.fromEnvironment('dart.library.js_util');
+const kIsWeb = true;

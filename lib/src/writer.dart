@@ -8,6 +8,10 @@ class MsgPackWriter {
   Uint8List get bytes =>
     _builder.takeBytes();
 
+  void clear() {
+    _builder.clear();
+  }
+
   void writeByte(int v) {
     _builder.addByte(v);
   }
