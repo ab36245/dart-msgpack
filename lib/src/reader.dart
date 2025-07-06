@@ -1,11 +1,10 @@
 import 'dart:typed_data';
 
 import 'exception.dart';
-import 'platform.dart';
 import 'sizes.dart';
 
 class MsgPackReader {
-  MsgPackReader(this._bytes);
+  MsgPackReader(this._bytes, [this._isJS = false]);
 
   int peekByte() =>
     _peek(1, (i) => _bytes[i]);
@@ -32,7 +31,7 @@ class MsgPackReader {
     _read(4, _view.getInt32);
 
   int readInt64() {
-    if (kIsWeb) {
+    if (_isJS) {
       // Because JavaScript can't handle 64-bit bitwise operations!
       final be = _read(4, _view.getInt32);
       final le = _read(4, _view.getInt32);
@@ -51,7 +50,7 @@ class MsgPackReader {
     _read(4, _view.getUint32);
 
   int readUint64() {
-    if (kIsWeb) {
+    if (_isJS) {
       // Because JavaScript can't handle 64-bit bitwise operations!
       final be = _read(4, _view.getUint32);
       final le = _read(4, _view.getUint32);
@@ -66,15 +65,8 @@ class MsgPackReader {
   late final _length = _bytes.length;
   late final _view = ByteData.sublistView(_bytes);
 
-  // T _read<T>(int size, T Function(int) f) {
-  //   int excess = _index + size - _length;
-  //   if (excess > 0) {
-  //     throw MsgPackException('trying to read $excess bytes beyond end of buffer ($_length bytes)');
-  //   }
-  //   final value = f(_index);
-  //   _index += size;
-  //   return value;
-  // }
+  // Ugh!
+  final bool _isJS;
 
   T _peek<T>(int size, T Function(int) f) {
     int excess = _index + size - _length;

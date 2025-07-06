@@ -7,7 +7,13 @@ import 'sizes.dart';
 import 'writer.dart';
 
 class MsgPackEncoder {
-  MsgPackEncoder([Uint8List? prefix]) {
+  MsgPackEncoder({
+    Uint8List? prefix,
+    bool isJS = isJS,
+  }) :
+    _isJS = isJS,
+    _writer = MsgPackWriter(isJS)
+  {
     if (prefix != null) {
       _writer.writeBytes(prefix);
     }
@@ -158,7 +164,7 @@ class MsgPackEncoder {
       _writer.writeByte(0xd7);
       _writer.writeByte(0xff);
       int data64;
-      if (kIsWeb) {
+      if (_isJS) {
         // Because JavaScript can't handle 64-bit bitwise operations!
         data64 = nsec * (mask34 + 1) + sec;
       } else {
@@ -176,7 +182,7 @@ class MsgPackEncoder {
   void putUint(int v) {
     switch (v) {
       case < 0:
-        _fail('array length ($v) negative');
+        _fail('uint ($v) negative');
       case <= mask7:
         _writer.writeByte(v);
       case <= mask8:
@@ -198,8 +204,10 @@ class MsgPackEncoder {
   String toString() =>
     _writer.toString();
 
-  final _writer = MsgPackWriter();
+  final MsgPackWriter _writer;
 
   Never _fail(String mesg) =>
       throw MsgPackException(mesg);
+
+  final bool _isJS;
 }

@@ -5,10 +5,20 @@ import 'package:test/test.dart';
 import 'package:dart_msgpack/dart_msgpack.dart';
 
 void main() {
-  group('MsgEncoder', () {
+  MsgPackEncoder getEncoder() =>
+    MsgPackEncoder(isJS: true);
+
+  void doRun(String e, Function(MsgPackEncoder me) f, [bool prefix = false]) {
+    final me = getEncoder();
+    f(me);
+    final v = me.bytes;
+    _check(v, e, prefix);
+  }
+
+  group('MsgPackEncoder', () {
     group('array length', () {
       void run(int n, String e) =>
-        _run(e, (me) => me.putArrayLength(n));
+        doRun(e, (me) => me.putArrayLength(n));
 
       test('fixarray', () {
         run(
@@ -41,7 +51,7 @@ void main() {
 
     group('bool', () {
       void run(bool b, String e) =>
-        _run(e, (me) => me.putBool(b));
+        doRun(e, (me) => me.putBool(b));
   
       test('false', () {
         run(
@@ -66,7 +76,7 @@ void main() {
     group('bytes', () {
       void run(int n, String e) {
         final b = Uint8List(n);
-        _run(e, (me) => me.putBytes(b), true);
+        doRun(e, (me) => me.putBytes(b), true);
       }
 
       test('8 bit length', () {
@@ -99,7 +109,7 @@ void main() {
       });
       test('over 32 bit length', () {
         final b = Uint8List(4294967296);
-        final me = MsgPackEncoder();
+        final me = getEncoder();
         var v = '';
         try {
           me.putBytes(b);
@@ -113,7 +123,7 @@ void main() {
 
     test('float32', () {
       void run(double f, String e) =>
-        _run(e, (me) => me.putFloat32(f));
+        doRun(e, (me) => me.putFloat32(f));
 
       run(
         85.125,
@@ -140,7 +150,7 @@ void main() {
 
     test('float64', () {
       void run(double f, String e) =>
-        _run(e, (me) => me.putFloat64(f));
+        doRun(e, (me) => me.putFloat64(f));
 
       run(
         85.125,
@@ -167,7 +177,7 @@ void main() {
 
     group('ints', () {
       void run(int i, String e) =>
-        _run(e, (me) => me.putInt(i));
+        doRun(e, (me) => me.putInt(i));
 
       test('fixint', () {
         run(
@@ -250,7 +260,7 @@ void main() {
 
     group('map length', () {
       void run(int n, String e) =>
-        _run(e, (me) => me.putMapLength(n));
+        doRun(e, (me) => me.putMapLength(n));
 
       test('fixarray', () {
         run(
@@ -283,7 +293,7 @@ void main() {
 
     test('nil', () {
       void run(String e) =>
-        _run(e, (me) => me.putNil());
+        doRun(e, (me) => me.putNil());
 
       run(
         '''
@@ -297,7 +307,7 @@ void main() {
       final base = 'hi!';
       void run(int n, String e) {
         final s = base * n;
-        _run(e, (me) => me.putString(s), true);
+        doRun(e, (me) => me.putString(s), true);
       }
 
       test('fixstr', () {
@@ -343,7 +353,7 @@ void main() {
       test('over 32 bit length', () {
         // Note: this test is *slow*!
         final s = "a" * 4294967296;
-        final me = MsgPackEncoder();
+        final me = getEncoder();
         var v = '';
         try {
           me.putString(s);
@@ -357,7 +367,7 @@ void main() {
 
     group('time', () {
       void run(DateTime d, String e) =>
-        _run(e, (me) => me.putTime(d));
+        doRun(e, (me) => me.putTime(d));
 
       test('timestamp32', () {
         run(
@@ -392,7 +402,7 @@ void main() {
 
     group('uint', () {
       void run(int i, String e) =>
-        _run(e, (me) => me.putUint(i));
+        doRun(e, (me) => me.putUint(i));
 
       test('fixint', () {
         run(
@@ -454,13 +464,6 @@ void _check(Uint8List v, String e, [bool prefix = false]) {
     vs = vs.substring(0, es.length);
   }
   expect(vs, es);
-}
-
-void _run(String e, Function(MsgPackEncoder me) f, [bool prefix = false]) {
-  final me = MsgPackEncoder();
-  f(me);
-  final v = me.bytes;
-  _check(v, e, prefix);
 }
 
 String _trim(String s) {
