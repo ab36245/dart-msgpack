@@ -1,10 +1,11 @@
 import 'dart:typed_data';
 
 import 'extensions.dart';
+import 'platform.dart';
 import 'sizes.dart';
 
 class MsgPackWriter {
-  MsgPackWriter([this._isJS = false]);
+  MsgPackWriter();
 
   Uint8List get bytes =>
     _builder.takeBytes();
@@ -47,7 +48,7 @@ class MsgPackWriter {
   }
 
   void writeInt64(int v) {
-    if (_isJS) {
+    if (asJS) {
       // Because JavaScript can't handle 64-bit bitwise operations!
       var be = v ~/ size32;
       if (v < 0) {
@@ -55,7 +56,7 @@ class MsgPackWriter {
       }
       final le = v % size32;
       _view.setInt32(0, be);
-      _view.setInt32(4, le);
+      _view.setUint32(4, le);
     } else {
       _view.setInt64(0, v);
     }
@@ -78,7 +79,7 @@ class MsgPackWriter {
   }
 
   void writeUint64(int v) {
-    if (_isJS) {
+    if (asJS) {
       // Because JavaScript can't handle 64-bit bitwise operations!
       var be = v ~/ size32;
       if (v < 0) {
@@ -100,7 +101,6 @@ class MsgPackWriter {
   final _buffer = Uint8List(8);
   final _builder = BytesBuilder();
   late final _view = ByteData.sublistView(_buffer);
-  final bool _isJS;
 
   void _copy(int size) {
     _builder.add(_buffer.sublist(0, size));

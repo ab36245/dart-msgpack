@@ -7,11 +7,8 @@ import 'reader.dart';
 import 'sizes.dart';
 
 class MsgPackDecoder {
-  MsgPackDecoder(Uint8List bytes, {
-    bool isJS = isJS,
-  }) :
-    _isJS = isJS,
-    _reader = MsgPackReader(bytes, isJS);
+  MsgPackDecoder(Uint8List bytes) :
+    _reader = MsgPackReader(bytes);
 
   int getArrayLength() {
     final b = _reader.readByte();
@@ -122,7 +119,7 @@ class MsgPackDecoder {
           _fail('invalid type for timestamp 64 extension (${_hex(t)})');
         }
         final data64 = _reader.readUint64();
-        if (isJS) {
+        if (asJS) {
           // Because JavaScript can't handle 64-bit bitwise operations!
           nsec = data64 ~/ size34;
           sec = data64 % size34;
@@ -179,6 +176,4 @@ class MsgPackDecoder {
 
   String _hex(int b) =>
     '0x${b.toRadixString(16).padLeft(2, '0')}';
-
-  final bool _isJS;
 }

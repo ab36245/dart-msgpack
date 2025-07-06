@@ -9,10 +9,8 @@ import 'writer.dart';
 class MsgPackEncoder {
   MsgPackEncoder({
     Uint8List? prefix,
-    bool isJS = isJS,
   }) :
-    _isJS = isJS,
-    _writer = MsgPackWriter(isJS)
+    _writer = MsgPackWriter()
   {
     if (prefix != null) {
       _writer.writeBytes(prefix);
@@ -164,7 +162,7 @@ class MsgPackEncoder {
       _writer.writeByte(0xd7);
       _writer.writeByte(0xff);
       int data64;
-      if (_isJS) {
+      if (asJS) {
         // Because JavaScript can't handle 64-bit bitwise operations!
         data64 = nsec * (mask34 + 1) + sec;
       } else {
@@ -208,6 +206,4 @@ class MsgPackEncoder {
 
   Never _fail(String mesg) =>
       throw MsgPackException(mesg);
-
-  final bool _isJS;
 }
