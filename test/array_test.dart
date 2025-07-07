@@ -1,74 +1,52 @@
 import 'package:test/test.dart';
 
-import 'util.dart';
+import 'package:dart_msgpack/dart_msgpack.dart';
 
 void main() {
   group('array', () {
-    void run(int n, String encoded) =>
-      runTest(
-        encode: (e) => e.putArrayLength(n),
-        encoded: encoded,
-        decode: (d) => d.getArrayLength(),
-        decoded: n,
-      );
+    void run(int n, String e) {
+      final mpe = MsgPackEncoder();
+      mpe.putArrayLength(n);
+      expect(mpe.asString(), e);
+      final mpd = MsgPackDecoder(mpe.bytes);
+      final a = mpd.getArrayLength();
+      expect(a, n);
+    }
 
-    test('fixarray', () {
-      final max = 15;
-      run(
-        max,
-        '''
-          |1 bytes
-          |    0000 9f
-        ''',
-      );
+    test('fixarray', () => run(15, '9f'));
+    group('16 bit', () {
+      test('min', () => run(16, 'dc 00 10'));
+      test('max', () => run(65535, 'dc ff ff'));
     });
-    test('16 bit', () {
-      final min = 16;
-      final max = 65535;
-      run(
-        min,
-        '''
-          |3 bytes
-          |    0000 dc 00 10
-        ''',
-      );
-      run(
-        max,
-        '''
-          |3 bytes
-          |    0000 dc ff ff
-        ''',
-      );
+    group('32 bit', () {
+      test('min', () => run(65536, 'dd 00 01 00 00'));
+      test('max', () => run(4294967295, 'dd ff ff ff ff'));
     });
-    test('32 bit', () {
-      final min = 65536;
-      final max = 4294967295;
-      run(
-        min,
-        '''
-          |5 bytes
-          |    0000 dd 00 01 00 00
-        ''',
-      );
-      run(
-        max,
-        '''
-          |5 bytes
-          |    0000 dd ff ff ff ff
-        ''',
-      );
+
+    test('negative', () {
+      var mesg = 'expected an exception but didn\'t get one';
+      try {
+        final mpe = MsgPackEncoder();
+        mpe.putArrayLength(-1);
+      } on MsgPackException catch(e) {
+        mesg = e.mesg;
+      } catch (e) {
+        mesg = 'unexpected exception $e';
+      }
+      expect(mesg, 'array length (-1) negative');
     });
-    test('outside bounds', () {
-      final neg = -1;
-      run(
-        neg,
-        'exception: array length ($neg) negative'
-      );
-      final min = 4294967296;
-      run(
-        min,
-        'exception: array length ($min) too large',
-      );
+
+    test('too big', () {
+      var mesg = 'expected an exception but didn\'t get one';
+      try {
+        final mpe = MsgPackEncoder();
+        mpe.putArrayLength(4294967296);
+      } on MsgPackException catch(e) {
+        mesg = e.mesg;
+      } catch (e) {
+        mesg = 'unexpected exception $e';
+      }
+      expect(mesg, 'array length (4294967296) too large');
     });
   });
 }

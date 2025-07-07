@@ -1,34 +1,19 @@
 import 'package:test/test.dart';
 
-import 'util.dart';
+import 'package:dart_msgpack/dart_msgpack.dart';
 
 void main() {
   group('bool', () {
-    void run(bool b, String e) =>
-      runTest(
-        encode: (e) => e.putBool(b),
-        encoded: e,
-        decode: (d) => d.getBool(),
-        decoded: b,
-      );
+    void run(bool b, String e) {
+      final mpe = MsgPackEncoder();
+      mpe.putBool(b);
+      expect(mpe.asString(), e);
+      final mpd = MsgPackDecoder(mpe.bytes);
+      final a = mpd.getBool();
+      expect(a, b);
+    }
 
-    test('false', () {
-      run(
-        false,
-        '''
-          |1 bytes
-          |    0000 c2
-        ''',
-      );
-    });
-    test('true', () {
-      run(
-        true,
-        '''
-          |1 bytes
-          |    0000 c3
-        ''',
-      );
-    });
+    test('false', () => run(false, 'c2'));
+    test('true', () => run(true, 'c3'));
   });
 }

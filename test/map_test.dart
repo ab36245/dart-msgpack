@@ -1,74 +1,52 @@
 import 'package:test/test.dart';
 
-import 'util.dart';
+import 'package:dart_msgpack/dart_msgpack.dart';
 
 void main() {
   group('map length', () {
-    void run(int n, String e) =>
-      runTest(
-        encode: (e) => e.putMapLength(n),
-        encoded: e,
-        decode: (d) => d.getMapLength(),
-        decoded: n,
-      );
+    void run(int n, String e) {
+      final mpe = MsgPackEncoder();
+      mpe.putMapLength(n);
+      expect(mpe.asString(), e);
+      final mpd = MsgPackDecoder(mpe.bytes);
+      final a = mpd.getMapLength();
+      expect(a, n);
+    }
 
-    test('fixarray', () {
-      final max = 15;
-      run(
-        max,
-        '''
-          |1 bytes
-          |    0000 8f
-        ''',
-      );
+    test('fixarray', () => run(15, '8f'));
+    group('16 bit', () {
+      test('min', () => run(16, 'de 00 10'));
+      test('max', () => run(65535, 'de ff ff'));
     });
-    test('16 bit', () {
-      final min = 16;
-      final max = 65535;
-      run(
-        min,
-        '''
-          |3 bytes
-          |    0000 de 00 10
-        ''',
-      );
-      run(
-        max,
-        '''
-          |3 bytes
-          |    0000 de ff ff
-        ''',
-      );
+    group('32 bit', () {
+      test('min', () => run(65536, 'df 00 01 00 00'));
+      test('max', () => run(4294967295, 'df ff ff ff ff'));
     });
-    test('32 bit', () {
-      final min = 65536;
-      final max = 4294967295;
-      run(
-        min,
-        '''
-          |5 bytes
-          |    0000 df 00 01 00 00
-        ''',
-      );
-      run(
-        max,
-        '''
-          |5 bytes
-          |    0000 df ff ff ff ff
-        ''',
-      );
+
+    test('negative', () {
+      var mesg = 'expected an exception but didn\'t get one';
+      try {
+        final mpe = MsgPackEncoder();
+        mpe.putMapLength(-1);
+      } on MsgPackException catch(e) {
+        mesg = e.mesg;
+      } catch (e) {
+        mesg = 'unexpected exception $e';
+      }
+      expect(mesg, 'map length (-1) negative');
     });
-    test('outside bounds', () {
-      final neg = -1;
-      run(
-        neg,
-        'exception: map length ($neg) negative'
-      );
-      final min = 4294967296;
-      run(
-        min,
-        'exception: map length ($min) too large',
-      );
+
+    test('too big', () {
+      var mesg = 'expected an exception but didn\'t get one';
+      try {
+        final mpe = MsgPackEncoder();
+        mpe.putMapLength(4294967296);
+      } on MsgPackException catch(e) {
+        mesg = e.mesg;
+      } catch (e) {
+        mesg = 'unexpected exception $e';
+      }
+      expect(mesg, 'map length (4294967296) too large');
     });
   });
 }

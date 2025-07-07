@@ -20,6 +20,11 @@ class MsgPackEncoder {
   Uint8List get bytes =>
     _writer.bytes;
 
+  String asString([int? maxLength]) {
+    final subset = maxLength == null ? bytes : bytes.take(maxLength);
+    return subset.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ');
+  }
+
   void clear() =>
     _writer.clear();
 
