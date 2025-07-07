@@ -48,7 +48,7 @@ class MsgPackWriter {
   }
 
   void writeInt64(int v) {
-    if (asJS) {
+    if (isJS) {
       // Because JavaScript can't handle 64-bit bitwise operations!
       var be = v ~/ size32;
       if (v < 0) {
@@ -79,7 +79,7 @@ class MsgPackWriter {
   }
 
   void writeUint64(int v) {
-    if (asJS) {
+    if (isJS) {
       // Because JavaScript can't handle 64-bit bitwise operations!
       var be = v ~/ size32;
       if (v < 0) {

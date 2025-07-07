@@ -32,7 +32,7 @@ class MsgPackReader {
     _read(4, _view.getInt32);
 
   int readInt64() {
-    if (asJS) {
+    if (isJS) {
       // Because JavaScript can't handle 64-bit bitwise operations!
       final be = _read(4, _view.getInt32);
       final le = _read(4, _view.getUint32);
@@ -51,7 +51,7 @@ class MsgPackReader {
     _read(4, _view.getUint32);
 
   int readUint64() {
-    if (asJS) {
+    if (isJS) {
       // Because JavaScript can't handle 64-bit bitwise operations!
       final be = _read(4, _view.getUint32);
       final le = _read(4, _view.getUint32);

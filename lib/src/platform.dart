@@ -15,10 +15,18 @@
 //
 // https://api.flutter.dev/flutter/foundation/kIsWeb-constant.html
 
-/// `isJS` should only be defined on true JavaScript platforms (i.e. browser)
-const isJS = bool.fromEnvironment('dart.library.js_util');
+/// `isJS` identifies whether the target platform is using Javascript.
+/// 
+/// The value defaults to the standard Dart/Flutter way of detecting Javascript
+/// (see `_isJS` below).
+/// 
+/// The `isJS` can be overridden on non-Javascript platforms by defining the
+/// compilation-time environment variable `IS_JS`. See the `runTests` scripts
+/// in the package root folder for an example. This is only useful for testing!
+/// Setting `isJS` to true on non-JS platforms will just slow things down and
+/// setting `isJS` to false on JS platforms will cause both encoding and
+/// decoding failures.
+/// 
+const isJS = bool.fromEnvironment('IS_JS', defaultValue: _isJS);
 
-/// `asJS` can be set on non-Javascript platforms by defining the compilation-
-/// time environment variable AS_JS.
-/// See the `runTests` scripts in the package root folder for an example.
-const asJS = bool.fromEnvironment('AS_JS', defaultValue: isJS);
+const _isJS = bool.fromEnvironment('dart.library.js_util');

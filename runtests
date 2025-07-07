@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-for as_js in false true
+for is_js in false true
 do
-	echo "Running test with AS_JS=${as_js}"
-	dart --define=AS_JS="${as_js}" test --use-data-isolate-strategy
+	echo "Running test with IS_JS=${is_js}"
+	dart --define=IS_JS="${is_js}" test --use-data-isolate-strategy
 done
 

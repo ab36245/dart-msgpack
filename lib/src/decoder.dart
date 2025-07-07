@@ -131,7 +131,7 @@ class MsgPackDecoder {
           _fail('invalid type for timestamp 64 extension (${_hex(t)})');
         }
         final data64 = _reader.readUint64();
-        if (asJS) {
+        if (isJS) {
           // Because JavaScript can't handle 64-bit bitwise operations!
           nsec = data64 ~/ size34;
           sec = data64 % size34;
