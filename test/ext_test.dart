@@ -15,21 +15,21 @@ void main() {
     }
 
     group('fixext1', () {
-      test('max', () => run(255, 42, 'd4 2a ff'));
+      test('max', () => run(42, 255, 'd4 2a ff'));
     });
 
-    group('16 bit', () {
-      test('min', () => run(256, 42, 'd5 2a 01 00'));
-      test('max', () => run(65535, 42, 'd5 2a ff ff'));
+    group('fixext2', () {
+      test('min', () => run(42, 256, 'd5 2a 01 00'));
+      test('max', () => run(42, 65535, 'd5 2a ff ff'));
     });
 
-    group('32 bit', () {
-      test('min', () => run(65536, 42, 'd6 2a 00 01 00 00'));
-      test('max', () => run(4294967295, 42, 'd6 2a ff ff ff ff'));
+    group('fixext4', () {
+      test('min', () => run(42, 65536, 'd6 2a 00 01 00 00'));
+      test('max', () => run(42, 4294967295, 'd6 2a ff ff ff ff'));
     });
 
-    group('64 bit', () {
-      test('min', () => run(4294967296, 42, 'd7 2a 00 00 00 01 00 00 00 00'));
+    group('fixext8', () {
+      test('min', () => run(42, 4294967296, 'd7 2a 00 00 00 01 00 00 00 00'));
     });
 
     group('invalid', () {

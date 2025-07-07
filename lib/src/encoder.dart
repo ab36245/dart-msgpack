@@ -84,15 +84,19 @@ class MsgPackEncoder {
         _fail('ext uint ($v) negative');
       case <= mask8:
         _writer.writeByte(0xd4);
+        _writer.writeUint8(typ);
         _writer.writeUint8(v);
       case <= mask16:
         _writer.writeByte(0xd5);
+        _writer.writeUint8(typ);
         _writer.writeUint16(v);
       case <= mask32:
         _writer.writeByte(0xd6);
+        _writer.writeUint8(typ);
         _writer.writeUint32(v);
       default:
         _writer.writeByte(0xd7);
+        _writer.writeUint8(typ);
         _writer.writeUint64(v);
     }
   }
@@ -192,7 +196,7 @@ class MsgPackEncoder {
       _writer.writeByte(0xd7);
       _writer.writeByte(0xff);
       int data64;
-      if (asJS) {
+      if (isJS) {
         // Because JavaScript can't handle 64-bit bitwise operations!
         data64 = nsec * (mask34 + 1) + sec;
       } else {
