@@ -19,5 +19,6 @@
 const isJS = bool.fromEnvironment('dart.library.js_util');
 
 /// `asJS` can be set on non-Javascript platforms by defining the compilation-
-/// time environment variable TEST_AS_JS.
+/// time environment variable AS_JS.
+/// See the `runTests` scripts in the package root folder for an example.
 const asJS = bool.fromEnvironment('AS_JS', defaultValue: isJS);

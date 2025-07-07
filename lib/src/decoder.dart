@@ -42,6 +42,18 @@ class MsgPackDecoder {
     return _reader.readBytes(n);
   }
 
+  (int, int) getExtUint() {
+    final b = _reader.readByte();
+    final typ = _reader.readUint8();
+    return switch (b) {
+      0xd4 => (typ, _reader.readUint8()),
+      0xd5 => (typ, _reader.readUint16()),
+      0xd6 => (typ, _reader.readUint32()),
+      0xd7 => (typ, _reader.readUint64()),
+      _ => _fail('invalid byte for ext uint (${_hex(b)})'),
+    };
+  }
+
   double getFloat() {
     final b = _reader.readByte();
     return switch (b) {

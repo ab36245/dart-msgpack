@@ -72,6 +72,31 @@ class MsgPackEncoder {
     _writer.writeBytes(v);
   }
 
+  void putExtUint(int typ, int v) {
+    if (typ < 0) {
+      _fail('ext type ($typ) is reserved');
+    }
+    if (typ > mask8) {
+      _fail('ext type ($typ) is too large to encode');
+    }
+    switch (v) {
+      case < 0:
+        _fail('ext uint ($v) negative');
+      case <= mask8:
+        _writer.writeByte(0xd4);
+        _writer.writeUint8(v);
+      case <= mask16:
+        _writer.writeByte(0xd5);
+        _writer.writeUint16(v);
+      case <= mask32:
+        _writer.writeByte(0xd6);
+        _writer.writeUint32(v);
+      default:
+        _writer.writeByte(0xd7);
+        _writer.writeUint64(v);
+    }
+  }
+
   void putFloat(double v) {
     // Try to work out if and when encoding a float32 is acceptable!
     // TODO
