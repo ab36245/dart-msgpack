@@ -102,9 +102,31 @@ class MsgPackEncoder {
   }
 
   void putFloat(double v) {
-    // Try to work out if and when encoding a float32 is acceptable!
-    // TODO
-    putFloat64(v);
+    // Try to work out if encoding a single-precision IEEE754 value
+    // is acceptable
+    final ieee754 = ByteData(8);
+    ieee754.setFloat64(0, v);
+
+    // ...check if the exponent is inside the range for single-precision
+
+    final biasedExp = (ieee754.getUint16(0) >> 4) & 0x7ff;
+    final unbiasedExp = biasedExp - 1023;
+    if (unbiasedExp < -128 || unbiasedExp > 127) {
+      // nope!
+      putFloat64(v);
+      return;
+    }
+
+    // ...check if the least significant bits of the mantissa are zero
+    final leastSignificantBits = ieee754.getUint32(4) & ((1 << 29) - 1);
+    if (leastSignificantBits != 0) {
+      // nope!
+      putFloat64(v);
+      return;
+    }
+    
+    // ...it looks ok to only encode a single-precision (32 bit) version
+    putFloat32(v);
   }
 
   void putFloat32(double v) {
