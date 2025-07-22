@@ -45,16 +45,7 @@ class MsgPackEncoder {
     }
   }
 
-  void putBool(bool v) {
-    switch (v) {
-      case false:
-        _writer.writeByte(0xc2);
-      case true:
-        _writer.writeByte(0xc3);
-    }
-  }
-
-  void putBytes(Uint8List v) {
+  void putBinary(Uint8List v) {
     final n = v.length;
     switch (n) {
       case <= mask8:
@@ -69,6 +60,19 @@ class MsgPackEncoder {
       default:
         _fail('byte list ($n bytes) is too long to encode');
     }
+    _writer.writeBytes(v);
+  }
+
+  void putBool(bool v) {
+    switch (v) {
+      case false:
+        _writer.writeByte(0xc2);
+      case true:
+        _writer.writeByte(0xc3);
+    }
+  }
+
+  void putBytes(Uint8List v) {
     _writer.writeBytes(v);
   }
 

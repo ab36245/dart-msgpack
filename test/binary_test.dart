@@ -5,11 +5,11 @@ import 'package:test/test.dart';
 import 'package:dart_msgpack/dart_msgpack.dart';
 
 void main() {
-  group('bytes', () {
+  group('binary', () {
     void run(int n, String e) {
       final b = Uint8List(n);
       final mpe = MsgPackEncoder();
-      mpe.putBytes(b);
+      mpe.putBinary(b);
       expect(mpe.asString(10), startsWith(e));
       final mpd = MsgPackDecoder(mpe.bytes);
       final a = mpd.getBytes();
@@ -35,7 +35,7 @@ void main() {
       var mesg = 'expected an exception but didn\'t get one';
       try {
         final mpe = MsgPackEncoder();
-        mpe.putBytes(Uint8List(4294967296));
+        mpe.putBinary(Uint8List(4294967296));
       } on MsgPackException catch(e) {
         mesg = e.mesg;
       } catch (e) {
