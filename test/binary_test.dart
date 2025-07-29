@@ -12,7 +12,7 @@ void main() {
       mpe.putBinary(b);
       expect(mpe.asString(10), startsWith(e));
       final mpd = MsgPackDecoder(mpe.bytes);
-      final a = mpd.getBytes();
+      final a = mpd.getBinary();
       expect(a, b);
     }
 

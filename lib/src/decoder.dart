@@ -25,8 +25,19 @@ class MsgPackDecoder {
     return switch (b) {
       0xdc => _readUint16(),
       0xdd => _readUint32(),
-      _ => fail('invalid byte for array length (${hex(b)})'),
+      _ => invalid('array length', b),
     };
+  }
+
+  Uint8List getBinary() {
+    final b = _readByte();
+    final n = switch (b) {
+      0xc4 => _readUint8(),
+      0xc5 => _readUint16(),
+      0xc6 => _readUint32(),
+      _ => invalid('binary', b),
+    };
+    return _readBytes(n);
   }
 
   bool getBool() {
@@ -34,19 +45,8 @@ class MsgPackDecoder {
     return switch (b) {
       0xc2 => false,
       0xc3 => true,
-      _ => fail('invalid byte for boolean (${hex(b)})'),
+      _ => invalid('bool', b),
     };
-  }
-
-  Uint8List getBytes() {
-    final b = _readByte();
-    final n = switch (b) {
-      0xc4 => _readUint8(),
-      0xc5 => _readUint16(),
-      0xc6 => _readUint32(),
-      _ => fail('invalid byte for bytes length (${hex(b)})'),
-    };
-    return _readBytes(n);
   }
 
   (int, int) getExtUint() {
@@ -57,7 +57,7 @@ class MsgPackDecoder {
       0xd5 => (typ, _readUint16()),
       0xd6 => (typ, _readUint32()),
       0xd7 => (typ, _readUint64()),
-      _ => fail('invalid byte for ext uint (${hex(b)})'),
+      _ => invalid('ext uint', b),
     };
   }
 
@@ -66,7 +66,7 @@ class MsgPackDecoder {
     return switch (b) {
       0xca => _readFloat32(),
       0xcb => _readFloat64(),
-      _ => fail('invalid byte for float (${hex(b)})'),
+      _ => invalid('float', b),
     };
   }
 
@@ -85,7 +85,7 @@ class MsgPackDecoder {
       0xd1 => _readInt16(),
       0xd2 => _readInt32(),
       0xd3 => _readInt64(),
-      _ => fail('invalid byte for int (${hex(b)})'),
+      _ => invalid('int', b),
     };
   }
 
@@ -97,7 +97,7 @@ class MsgPackDecoder {
     return switch (b) {
       0xde => _readUint16(),
       0xdf => _readUint32(),
-      _ => fail('invalid byte for map length (${hex(b)})'),
+      _ => invalid('map length', b),
     };
   }
 
@@ -111,7 +111,7 @@ class MsgPackDecoder {
         0xd9 => _readUint8(),
         0xda => _readUint16(),
         0xdb => _readUint32(),
-        _ => fail('invalid byte for string length (${hex(b)})'),
+        _ => invalid('string', b),
       };
     }
     final u = _readBytes(n);
@@ -127,7 +127,7 @@ class MsgPackDecoder {
         // timestamp 32
         final t = _readByte();
         if (t != 255) {
-          fail('invalid type for timestamp 32 extension (${hex(t)})');
+          invalid('timestamp 32 extension type', t);
         }
         nsec = 0;
         sec = _readInt32();
@@ -135,7 +135,7 @@ class MsgPackDecoder {
         // timestamp 64
         final t = _readByte();
         if (t != 255) {
-          fail('invalid type for timestamp 64 extension (${hex(t)})');
+          invalid('timestamp 64 extension type', t);
         }
         final data64 = _readUint64();
         if (isJS) {
@@ -150,16 +150,16 @@ class MsgPackDecoder {
         // timestamp 96
         final n = _readByte();
         if (n != 12) {
-          fail('invalid length for timestamp 96 extension (${hex(n)})');
+          invalid('timestamp 96 extension length', n);
         }
         final t = _readByte();
         if (t != 255) {
-          fail('invalid type for timestamp 96 extension (${hex(t)})');
+          invalid('timestamp 96 extension type', t);
         }
         nsec = _readUint32();
         sec = _readInt64();
       default:
-        fail('invalid byte for timestamp extension (${hex(b)})');
+        invalid('timestamp extension', b);
     }
     final usec = sec * 1000 * 1000 + nsec ~/ 1000;
     return DateTime.fromMicrosecondsSinceEpoch(usec, isUtc: true);
@@ -175,7 +175,7 @@ class MsgPackDecoder {
       0xcd => _readUint16(),
       0xce => _readUint32(),
       0xcf => _readUint64(),
-      _ => fail('invalid byte for unsigned int (${hex(b)})'),
+      _ => invalid('uint', b),
     };
   }
 
