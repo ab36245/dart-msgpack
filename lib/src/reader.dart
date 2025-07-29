@@ -7,6 +7,9 @@ import 'sizes.dart';
 class MsgPackReader {
   MsgPackReader(this._bytes);
 
+  Uint8List get bytes =>
+    _bytes.sublist(_index);
+
   int peekByte() =>
     _peek(1, (i) => _bytes[i]);
 

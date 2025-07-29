@@ -10,6 +10,9 @@ class MsgPackDecoder {
   MsgPackDecoder(Uint8List bytes) :
     _reader = MsgPackReader(bytes);
 
+  Uint8List get bytes =>
+    _reader.bytes;
+
   int getArrayLength() {
     final b = _reader.readByte();
     if (b & 0xf0 == 0x90) {
