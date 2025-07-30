@@ -1,9 +1,9 @@
 import 'dart:convert' show utf8;
 import 'dart:typed_data';
 
+import 'exception.dart';
 import 'platform.dart';
 import 'sizes.dart';
-import 'util.dart';
 
 class MsgPackDecoder {
   MsgPackDecoder(this._bytes);
@@ -25,7 +25,7 @@ class MsgPackDecoder {
     return switch (b) {
       0xdc => _readUint16(),
       0xdd => _readUint32(),
-      _ => invalid('array length', b),
+      _ => _invalid('array length', b),
     };
   }
 
@@ -35,7 +35,7 @@ class MsgPackDecoder {
       0xc4 => _readUint8(),
       0xc5 => _readUint16(),
       0xc6 => _readUint32(),
-      _ => invalid('binary', b),
+      _ => _invalid('binary', b),
     };
     return _readBytes(n);
   }
@@ -45,7 +45,7 @@ class MsgPackDecoder {
     return switch (b) {
       0xc2 => false,
       0xc3 => true,
-      _ => invalid('bool', b),
+      _ => _invalid('bool', b),
     };
   }
 
@@ -57,7 +57,7 @@ class MsgPackDecoder {
       0xd5 => (typ, _readUint16()),
       0xd6 => (typ, _readUint32()),
       0xd7 => (typ, _readUint64()),
-      _ => invalid('ext uint', b),
+      _ => _invalid('ext uint', b),
     };
   }
 
@@ -66,7 +66,7 @@ class MsgPackDecoder {
     return switch (b) {
       0xca => _readFloat32(),
       0xcb => _readFloat64(),
-      _ => invalid('float', b),
+      _ => _invalid('float', b),
     };
   }
 
@@ -85,7 +85,7 @@ class MsgPackDecoder {
       0xd1 => _readInt16(),
       0xd2 => _readInt32(),
       0xd3 => _readInt64(),
-      _ => invalid('int', b),
+      _ => _invalid('int', b),
     };
   }
 
@@ -97,7 +97,7 @@ class MsgPackDecoder {
     return switch (b) {
       0xde => _readUint16(),
       0xdf => _readUint32(),
-      _ => invalid('map length', b),
+      _ => _invalid('map length', b),
     };
   }
 
@@ -111,7 +111,7 @@ class MsgPackDecoder {
         0xd9 => _readUint8(),
         0xda => _readUint16(),
         0xdb => _readUint32(),
-        _ => invalid('string', b),
+        _ => _invalid('string', b),
       };
     }
     final u = _readBytes(n);
@@ -127,7 +127,7 @@ class MsgPackDecoder {
         // timestamp 32
         final t = _readByte();
         if (t != 255) {
-          invalid('timestamp 32 extension type', t);
+          _invalid('timestamp 32 extension type', t);
         }
         nsec = 0;
         sec = _readInt32();
@@ -135,7 +135,7 @@ class MsgPackDecoder {
         // timestamp 64
         final t = _readByte();
         if (t != 255) {
-          invalid('timestamp 64 extension type', t);
+          _invalid('timestamp 64 extension type', t);
         }
         final data64 = _readUint64();
         if (isJS) {
@@ -150,16 +150,16 @@ class MsgPackDecoder {
         // timestamp 96
         final n = _readByte();
         if (n != 12) {
-          invalid('timestamp 96 extension length', n);
+          _invalid('timestamp 96 extension length', n);
         }
         final t = _readByte();
         if (t != 255) {
-          invalid('timestamp 96 extension type', t);
+          _invalid('timestamp 96 extension type', t);
         }
         nsec = _readUint32();
         sec = _readInt64();
       default:
-        invalid('timestamp extension', b);
+        _invalid('timestamp extension', b);
     }
     final usec = sec * 1000 * 1000 + nsec ~/ 1000;
     return DateTime.fromMicrosecondsSinceEpoch(usec, isUtc: true);
@@ -175,7 +175,7 @@ class MsgPackDecoder {
       0xcd => _readUint16(),
       0xce => _readUint32(),
       0xcf => _readUint64(),
-      _ => invalid('uint', b),
+      _ => _invalid('uint', b),
     };
   }
 
@@ -196,7 +196,7 @@ class MsgPackDecoder {
     int length = _bytes.length;
     int excess = _index + size - length;
     if (excess > 0) {
-      fail('trying to read $excess bytes beyond end of buffer ($length bytes)');
+      _fail('trying to read $excess bytes beyond end of buffer ($length bytes)');
     }
     final value = f(_index);
     return value;
@@ -261,3 +261,12 @@ class MsgPackDecoder {
     return _read(8, _view.getUint64);
   }
 }
+
+Never _fail(String mesg) =>
+    throw MsgPackException(mesg);
+
+String _hex(int b) =>
+  b.toRadixString(16).padLeft(2, '0');
+
+Never _invalid(String what, int b) =>
+  _fail('invalid byte for $what (0x${_hex(b)})');

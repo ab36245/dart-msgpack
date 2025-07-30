@@ -1,9 +1,9 @@
 import 'dart:convert' show utf8;
 import 'dart:typed_data';
 
+import 'exception.dart';
 import 'platform.dart';
 import 'sizes.dart';
-import 'util.dart';
 
 class MsgPackEncoder {
   MsgPackEncoder({
@@ -20,7 +20,7 @@ class MsgPackEncoder {
 
   String asString([int? maxLength]) {
     final subset = maxLength == null ? bytes : bytes.take(maxLength);
-    return subset.map(hex).join(' ');
+    return subset.map(_hex).join(' ');
   }
 
   void clear() {
@@ -30,7 +30,7 @@ class MsgPackEncoder {
   void putArrayLength(int v) {
     switch (v) {
       case < 0:
-        fail('array length ($v) negative');
+        _fail('array length ($v) negative');
       case <= mask4:
         _writeByte(0x90 | v);
       case <= mask16:
@@ -40,7 +40,7 @@ class MsgPackEncoder {
         _writeByte(0xdd);
         _writeUint32(v);
       default:
-        fail('array length ($v) too large');
+        _fail('array length ($v) too large');
     }
   }
 
@@ -57,7 +57,7 @@ class MsgPackEncoder {
         _writeByte(0xc6);
         _writeUint32(n);
       default:
-        fail('byte list ($n bytes) is too long to encode');
+        _fail('byte list ($n bytes) is too long to encode');
     }
     _writeBytes(v);
   }
@@ -77,14 +77,14 @@ class MsgPackEncoder {
 
   void putExtUint(int typ, int v) {
     if (typ < 0) {
-      fail('ext type ($typ) is reserved');
+      _fail('ext type ($typ) is reserved');
     }
     if (typ > mask8) {
-      fail('ext type ($typ) is too large to encode');
+      _fail('ext type ($typ) is too large to encode');
     }
     switch (v) {
       case < 0:
-        fail('ext uint ($v) negative');
+        _fail('ext uint ($v) negative');
       case <= mask8:
         _writeByte(0xd4);
         _writeUint8(typ);
@@ -164,7 +164,7 @@ class MsgPackEncoder {
   void putMapLength(int v) {
     switch (v) {
       case < 0:
-        fail('map length ($v) negative');
+        _fail('map length ($v) negative');
       case <= mask4:
         _writeByte(0x80 | v);
       case <= mask16:
@@ -174,7 +174,7 @@ class MsgPackEncoder {
         _writeByte(0xdf);
         _writeUint32(v);
       default:
-        fail('map length ($v) too large');
+        _fail('map length ($v) too large');
     }
   }
 
@@ -198,7 +198,7 @@ class MsgPackEncoder {
         _writeByte(0xdb);
         _writeUint32(n);
       default:
-        fail('string ($n bytes) is too long to encode');
+        _fail('string ($n bytes) is too long to encode');
     }
     _writeBytes(u);
   }
@@ -239,7 +239,7 @@ class MsgPackEncoder {
   void putUint(int v) {
     switch (v) {
       case < 0:
-        fail('uint ($v) negative');
+        _fail('uint ($v) negative');
       case <= mask7:
         _writeByte(v);
       case <= mask8:
@@ -347,3 +347,9 @@ class MsgPackEncoder {
     _copy(8);
   }
 }
+
+Never _fail(String mesg) =>
+  throw MsgPackException(mesg);
+
+String _hex(int b) =>
+  b.toRadixString(16).padLeft(2, '0');
